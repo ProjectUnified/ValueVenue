@@ -1,4 +1,4 @@
-package io.github.projectunified.maventemplate;
+package io.github.projectunified.valuevenue;
 
 public class Main {
     public static void main(String[] args) {
