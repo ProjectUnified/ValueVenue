@@ -7,11 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class ValueVenue<K, V> {
-    private final Function<K, List<V>> valueSupplier;
+    private final Function<K, List<V>> valueGenerator;
     private final Map<K, List<V>> valueListMap = new ConcurrentHashMap<>();
 
-    public ValueVenue(Function<K, List<V>> valueSupplier) {
-        this.valueSupplier = valueSupplier;
+    public ValueVenue(Function<K, List<V>> valueGenerator) {
+        this.valueGenerator = valueGenerator;
     }
 
     public List<V> get(K key) {
@@ -19,7 +19,7 @@ public class ValueVenue<K, V> {
     }
 
     public void update(K key) {
-        List<V> values = valueSupplier.apply(key);
+        List<V> values = valueGenerator.apply(key);
         valueListMap.put(key, values);
     }
 }

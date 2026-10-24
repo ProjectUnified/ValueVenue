@@ -1,16 +1,15 @@
-package io.github.projectunified.valuevenue.core;
+package io.github.projectunified.valuevenue.generator;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class CachedValueSupplier<K, SV, FV> implements Function<K, List<FV>> {
-    private final Map<SV, ValueEntry> cache = new ConcurrentHashMap<>();
+public abstract class SharedValueGenerator<K, SV, FV> implements Function<K, List<FV>> {
+    private final Map<SV, CachedValueEntry<FV>> cache = new ConcurrentHashMap<>();
 
     public abstract Stream<SV> getSourceValueStream();
 
@@ -38,21 +37,10 @@ public abstract class CachedValueSupplier<K, SV, FV> implements Function<K, List
     public void update() {
         getSourceValueStream().forEach(sourceValue -> cache.compute(sourceValue, (sv, entry) -> {
             if (entry == null) {
-                entry = new ValueEntry(sv, mapToFinalValue(sv));
+                entry = new CachedValueEntry<>(mapToFinalValue(sv));
             }
             entry.activated.lazySet(isSourceValueActivated(sourceValue));
             return entry;
         }));
-    }
-
-    private class ValueEntry {
-        final SV sourceValue;
-        final FV finalValue;
-        final AtomicBoolean activated = new AtomicBoolean();
-
-        private ValueEntry(SV sourceValue, FV finalValue) {
-            this.sourceValue = sourceValue;
-            this.finalValue = finalValue;
-        }
     }
 }
