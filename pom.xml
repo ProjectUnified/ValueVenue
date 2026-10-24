@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>${project.artifactId}</name>
+    <name>ValueVenue</name>
     <description>A library to provide value objects</description>
     <url>https://github.com/ProjectUnified/${project.name}</url>
 

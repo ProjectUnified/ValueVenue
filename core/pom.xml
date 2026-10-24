@@ -10,5 +10,5 @@
     </parent>
 
     <artifactId>value-venue-core</artifactId>
-    <name>${project.artifactId}</name>
+    <name>ValueVenue Core</name>
 </project>

@@ -10,5 +10,5 @@
     </parent>
 
     <artifactId>value-venue-generator</artifactId>
-    <name>${project.artifactId}</name>
+    <name>ValueVenue Generator</name>
 </project>
