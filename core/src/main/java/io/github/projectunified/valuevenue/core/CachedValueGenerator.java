@@ -1,5 +1,7 @@
 package io.github.projectunified.valuevenue.core;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -100,6 +102,21 @@ public abstract class CachedValueGenerator<K, SV, FV> implements Function<K, Lis
                 .filter(entry -> isValueActivated(entry.finalValue, key))
                 .map(entry -> entry.finalValue)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a snapshot of the cache as source value to final value, including entries whose source value
+     * is not active and entries created by a key.
+     * <p>
+     * The map is read-only and detached: later {@link #apply(Object)} or {@link #update()} calls do not
+     * change it.
+     *
+     * @return read-only copy of the cached mapping
+     */
+    public Map<SV, FV> getCachedValues() {
+        Map<SV, FV> values = new HashMap<>(cache.size());
+        cache.forEach((sourceValue, entry) -> values.put(sourceValue, entry.finalValue));
+        return Collections.unmodifiableMap(values);
     }
 
     /**
