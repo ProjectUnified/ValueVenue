@@ -9,6 +9,10 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>core</module>
+    </modules>
+
     <name>ValueVenue</name>
     <description>A library to provide value objects</description>
     <url>https://github.com/ProjectUnified/${project.name}</url>
@@ -27,10 +31,6 @@
             <url>https://github.com/HSGamer</url>
         </developer>
     </developers>
-    <modules>
-        <module>core</module>
-        <module>generator</module>
-    </modules>
 
     <issueManagement>
         <system>github</system>
