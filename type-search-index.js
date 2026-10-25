@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"io.github.projectunified.valuevenue.core","l":"CachedValueGenerator"},{"p":"io.github.projectunified.valuevenue.core","l":"EnumValueGenerator"},{"p":"io.github.projectunified.valuevenue.core","l":"ValueVenue"}];updateSearchResults();
