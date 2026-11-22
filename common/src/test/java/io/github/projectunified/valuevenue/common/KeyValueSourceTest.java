@@ -8,23 +8,23 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class KeyValueStreamTest {
+class KeyValueSourceTest {
     private final Map<String, Object> value = Collections.singletonMap("name", "Alex");
 
     @Test
     void resolvesTheDefaultKey() {
-        KeyValueStream stream = new KeyValueStream(Collections.singletonList(value));
+        KeyValueSource stream = new KeyValueSource(Collections.singletonList(value));
 
-        assertEquals("Alex", stream.replace(KeyValueStream.DEFAULT_KEY + "_name", value));
-        assertEquals("", stream.replace(KeyValueStream.DEFAULT_KEY + "_missing", value));
+        assertEquals("Alex", stream.replace(KeyValueSource.DEFAULT_KEY + "_name", value));
+        assertEquals("", stream.replace(KeyValueSource.DEFAULT_KEY + "_missing", value));
         assertNull(stream.replace("name", value));
     }
 
     @Test
     void resolvesAGivenKey() {
-        KeyValueStream stream = new KeyValueStream("map", Collections.singletonList(value));
+        KeyValueSource stream = new KeyValueSource("map", Collections.singletonList(value));
 
         assertEquals("Alex", stream.replace("map_name", value));
-        assertNull(stream.replace(KeyValueStream.DEFAULT_KEY + "_name", value));
+        assertNull(stream.replace(KeyValueSource.DEFAULT_KEY + "_name", value));
     }
 }

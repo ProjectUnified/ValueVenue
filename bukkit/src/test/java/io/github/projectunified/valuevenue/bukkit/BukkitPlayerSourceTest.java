@@ -12,20 +12,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BukkitPlayerStreamTest {
+class BukkitPlayerSourceTest {
     private final OfflinePlayer player = player("Player");
 
     @Test
     void resolvesThePlayerName() {
-        BukkitPlayerStream stream = new BukkitPlayerStream(true, false);
+        BukkitPlayerSource stream = new BukkitPlayerSource(true, false);
 
-        assertEquals("Player", stream.replace(BukkitPlayerStream.DEFAULT_KEY, player));
+        assertEquals("Player", stream.replace(BukkitPlayerSource.DEFAULT_KEY, player));
         assertNull(stream.replace("something_else", player));
     }
 
     @Test
     void usesTheGivenKey() {
-        BukkitPlayerStream stream = new BukkitPlayerStream("player", true, false, null);
+        BukkitPlayerSource stream = new BukkitPlayerSource("player", true, false, null);
 
         assertEquals("Player", stream.replace("player", player));
         assertNull(stream.replace("current_player", player));
@@ -33,7 +33,7 @@ class BukkitPlayerStreamTest {
 
     @Test
     void delegatesThePlayerVariablesToTheOverride() {
-        BukkitPlayerStream stream = new BukkitPlayerStream("player", true, false, null) {
+        BukkitPlayerSource stream = new BukkitPlayerSource("player", true, false, null) {
             @Override
             protected Object replaceVariable(String variable, OfflinePlayer value) {
                 return variable.equals("world") ? "world" : super.replaceVariable(variable, value);
@@ -50,9 +50,9 @@ class BukkitPlayerStreamTest {
         OfflinePlayer alex = player("Alex");
         Predicate<OfflinePlayer> onlyAlex = player -> player.getName().equals("Alex");
 
-        assertTrue(new BukkitPlayerStream(true, false, onlyAlex).isSourceValueActivated(alex));
-        assertFalse(new BukkitPlayerStream(true, false, player -> player.getName().equals("Steve")).isSourceValueActivated(alex));
-        assertTrue(new BukkitPlayerStream(true, false).isSourceValueActivated(alex));
+        assertTrue(new BukkitPlayerSource(true, false, onlyAlex).isSourceValueActivated(alex));
+        assertFalse(new BukkitPlayerSource(true, false, player -> player.getName().equals("Steve")).isSourceValueActivated(alex));
+        assertTrue(new BukkitPlayerSource(true, false).isSourceValueActivated(alex));
     }
 
     private static OfflinePlayer player(String name) {

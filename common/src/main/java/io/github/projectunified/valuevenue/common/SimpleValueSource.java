@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 /**
  * A {@link ValueSource} whose values are a fixed list of strings, exposed as a single variable.
  */
-public class SimpleValueStream implements ValueSource<UUID, String> {
+public class SimpleValueSource implements ValueSource<UUID, String> {
     /**
      * The key used when none is given.
      */
@@ -25,7 +25,7 @@ public class SimpleValueStream implements ValueSource<UUID, String> {
      *
      * @param values the values to expose
      */
-    public SimpleValueStream(Collection<String> values) {
+    public SimpleValueSource(Collection<String> values) {
         this(DEFAULT_KEY, values);
     }
 
@@ -35,7 +35,7 @@ public class SimpleValueStream implements ValueSource<UUID, String> {
      * @param key    name of the variable holding the value
      * @param values the values to expose
      */
-    public SimpleValueStream(String key, Collection<String> values) {
+    public SimpleValueSource(String key, Collection<String> values) {
         this.key = key;
         this.values = new ArrayList<>(values);
     }

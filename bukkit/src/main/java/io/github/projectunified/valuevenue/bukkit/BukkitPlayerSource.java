@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  * {@link #replaceVariable(String, OfflinePlayer)}, which returns null by default. Override it to resolve the player
  * variables of the owner, calling the default for the rest.
  */
-public class BukkitPlayerStream implements ValueSource<UUID, OfflinePlayer> {
+public class BukkitPlayerSource implements ValueSource<UUID, OfflinePlayer> {
     /**
      * The key used when none is given.
      */
@@ -35,7 +35,7 @@ public class BukkitPlayerStream implements ValueSource<UUID, OfflinePlayer> {
      * @param viewSelf    whether the player viewing the list may see themselves
      * @param viewOffline whether offline players are included
      */
-    public BukkitPlayerStream(boolean viewSelf, boolean viewOffline) {
+    public BukkitPlayerSource(boolean viewSelf, boolean viewOffline) {
         this(DEFAULT_KEY, viewSelf, viewOffline, null);
     }
 
@@ -46,7 +46,7 @@ public class BukkitPlayerStream implements ValueSource<UUID, OfflinePlayer> {
      * @param viewOffline whether offline players are included
      * @param filter      filter a player has to pass to be exposed, or null to expose every player
      */
-    public BukkitPlayerStream(boolean viewSelf, boolean viewOffline, Predicate<OfflinePlayer> filter) {
+    public BukkitPlayerSource(boolean viewSelf, boolean viewOffline, Predicate<OfflinePlayer> filter) {
         this(DEFAULT_KEY, viewSelf, viewOffline, filter);
     }
 
@@ -58,7 +58,7 @@ public class BukkitPlayerStream implements ValueSource<UUID, OfflinePlayer> {
      * @param viewOffline whether offline players are included
      * @param filter      filter a player has to pass to be exposed, or null to expose every player
      */
-    public BukkitPlayerStream(String key, boolean viewSelf, boolean viewOffline, Predicate<OfflinePlayer> filter) {
+    public BukkitPlayerSource(String key, boolean viewSelf, boolean viewOffline, Predicate<OfflinePlayer> filter) {
         this.key = key;
         this.prefix = key + "_";
         this.viewSelf = viewSelf;
