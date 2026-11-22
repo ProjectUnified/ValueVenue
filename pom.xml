@@ -12,6 +12,7 @@
     <modules>
         <module>core</module>
         <module>common</module>
+        <module>number</module>
         <module>bukkit</module>
     </modules>
 
