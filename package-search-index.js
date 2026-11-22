@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"io.github.projectunified.valuevenue.core"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"io.github.projectunified.valuevenue.bukkit"},{"l":"io.github.projectunified.valuevenue.common"},{"l":"io.github.projectunified.valuevenue.core"},{"l":"io.github.projectunified.valuevenue.number"}];updateSearchResults();
