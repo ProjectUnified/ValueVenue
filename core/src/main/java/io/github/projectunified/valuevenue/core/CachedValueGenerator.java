@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +22,10 @@ import java.util.stream.Stream;
  * Instances are safe for concurrent {@link #apply(Object)} and {@link #update()} calls, but a cached
  * activation state is only recomputed by {@link #update()}; callers must invoke it when the activation
  * of source values changes.
+ * <p>
+ * Which source values exist, and whether they are active, is decided by {@link #getSourceValueStream()} and
+ * {@link #isSourceValueActivated(Object)}; use {@link #create(ValueSource, BiFunction)} to take both from a
+ * {@link ValueSource} instead of overriding them.
  *
  * @param <K> type of the key used to select values
  * @param <SV> type of the source value
@@ -29,10 +35,63 @@ public abstract class CachedValueGenerator<K, SV, FV> implements Function<K, Lis
     private final Map<SV, CachedValueEntry<FV>> cache = new ConcurrentHashMap<>();
 
     /**
-     * All source values the generator knows without a key, so {@link #update()} can create their cache
-     * entries upfront. Empty by default: a key-only generator needs no override, while its entries are
-     * created lazily by {@link #apply(Object)}. Values that can only be reached through a key are returned
-     * by {@link #getSourceValueStream(Object)} instead.
+     * Creates a generator from a source and a conversion, exposing every final value to every key.
+     *
+     * @param source    the source values
+     * @param converter the conversion of a source value and its variable replacer to its final value
+     * @param <K>       type of the key
+     * @param <SV>      type of the source value
+     * @param <FV>      type of the final value
+     * @return the generator
+     */
+    public static <K, SV, FV> CachedValueGenerator<K, SV, FV> create(ValueSource<K, SV> source, BiFunction<SV, Function<String, Object>, FV> converter) {
+        return create(source, converter, (value, key) -> true);
+    }
+
+    /**
+     * Creates a generator from a source and a conversion.
+     *
+     * @param source      the source values
+     * @param converter   the conversion of a source value and its variable replacer to its final value
+     * @param valueFilter whether a final value is exposed to the key, evaluated on every {@link #apply(Object)} call
+     * @param <K>         type of the key
+     * @param <SV>        type of the source value
+     * @param <FV>        type of the final value
+     * @return the generator
+     */
+    public static <K, SV, FV> CachedValueGenerator<K, SV, FV> create(ValueSource<K, SV> source, BiFunction<SV, Function<String, Object>, FV> converter, BiPredicate<FV, K> valueFilter) {
+        return new CachedValueGenerator<K, SV, FV>() {
+            @Override
+            public Stream<SV> getSourceValueStream() {
+                return source.getSourceValueStream();
+            }
+
+            @Override
+            public Stream<SV> getSourceValueStream(K key) {
+                return source.getSourceValueStream(key);
+            }
+
+            @Override
+            public boolean isSourceValueActivated(SV value) {
+                return source.isSourceValueActivated(value);
+            }
+
+            @Override
+            public FV mapToFinalValue(SV sourceValue) {
+                return converter.apply(sourceValue, input -> source.replace(input, sourceValue));
+            }
+
+            @Override
+            public boolean isValueActivated(FV value, K key) {
+                return valueFilter.test(value, key);
+            }
+        };
+    }
+
+    /**
+     * All source values the generator knows without a key, so {@link #update()} can create their cache entries
+     * upfront. Empty by default: a key-only generator needs no override, while its entries are created lazily by
+     * {@link #apply(Object)}.
      *
      * @return stream of every key-independent source value
      */
@@ -41,9 +100,7 @@ public abstract class CachedValueGenerator<K, SV, FV> implements Function<K, Lis
     }
 
     /**
-     * Source values to expose for the given key. Defaults to {@link #getSourceValueStream()}; override when
-     * the source values depend on the key. Entries for key-only source values are created lazily by
-     * {@link #apply(Object)}, not by {@link #update()}.
+     * Source values to expose for the given key. Defaults to {@link #getSourceValueStream()}.
      *
      * @param key key whose source values are requested
      * @return stream of source values for the key
@@ -53,16 +110,8 @@ public abstract class CachedValueGenerator<K, SV, FV> implements Function<K, Lis
     }
 
     /**
-     * Maps a source value to its final value. Called once per source value, then cached.
-     *
-     * @param sourceValue source value to map
-     * @return final value of the source value
-     */
-    public abstract FV mapToFinalValue(SV sourceValue);
-
-    /**
-     * Whether a source value is currently active. The result is cached per source value; it is evaluated
-     * when the entry is created and refreshed by {@link #update()}, so changes take effect after that call.
+     * Whether a source value is currently active. The result is cached per source value; it is evaluated when the
+     * entry is created and refreshed by {@link #update()}.
      *
      * @param value source value to check
      * @return true if the value may be exposed
@@ -70,6 +119,14 @@ public abstract class CachedValueGenerator<K, SV, FV> implements Function<K, Lis
     public boolean isSourceValueActivated(SV value) {
         return true;
     }
+
+    /**
+     * Maps a source value to its final value. Called once per source value, then cached.
+     *
+     * @param sourceValue source value to map
+     * @return final value of the source value
+     */
+    public abstract FV mapToFinalValue(SV sourceValue);
 
     /**
      * Whether a final value is exposed for the given key. Not cached: evaluated on every
