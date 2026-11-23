@@ -13,7 +13,7 @@ class KeyValueSourceTest {
 
     @Test
     void resolvesTheDefaultKey() {
-        KeyValueSource stream = new KeyValueSource(Collections.singletonList(value));
+        KeyValueSource<String> stream = new KeyValueSource<>(Collections.singletonList(value));
 
         assertEquals("Alex", stream.replace(KeyValueSource.DEFAULT_KEY + "_name", value));
         assertEquals("", stream.replace(KeyValueSource.DEFAULT_KEY + "_missing", value));
@@ -22,7 +22,7 @@ class KeyValueSourceTest {
 
     @Test
     void resolvesAGivenKey() {
-        KeyValueSource stream = new KeyValueSource("map", Collections.singletonList(value));
+        KeyValueSource<String> stream = new KeyValueSource<>("map", Collections.singletonList(value));
 
         assertEquals("Alex", stream.replace("map_name", value));
         assertNull(stream.replace(KeyValueSource.DEFAULT_KEY + "_name", value));

@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
  * A {@link ValueSource} whose values are maps, exposed as the {@code <key>_<name>} variables.
+ *
+ * @param <K> type of the key
  */
-public class KeyValueSource implements ValueSource<UUID, Map<String, Object>> {
+public class KeyValueSource<K> implements ValueSource<K, Map<String, Object>> {
     /**
      * The key used when none is given.
      */

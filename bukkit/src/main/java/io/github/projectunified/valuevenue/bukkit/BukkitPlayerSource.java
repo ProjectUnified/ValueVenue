@@ -5,8 +5,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -16,8 +16,14 @@ import java.util.stream.Stream;
  * {@code <key>} resolves to the name of the player, and {@code <key>_<variable>} is delegated to
  * {@link #replaceVariable(String, OfflinePlayer)}, which returns null by default. Override it to resolve the player
  * variables of the owner, calling the default for the rest.
+ * <p>
+ * Whether a player is active is decided by its own filter, which is refreshed by the update of the generator. Which
+ * players a key may see is decided by the key filter, which gets both the player and the key, so the source does not
+ * have to know what a key is.
+ *
+ * @param <K> type of the key
  */
-public class BukkitPlayerSource implements ValueSource<UUID, OfflinePlayer> {
+public class BukkitPlayerSource<K> implements ValueSource<K, OfflinePlayer> {
     /**
      * The key used when none is given.
      */
@@ -25,45 +31,54 @@ public class BukkitPlayerSource implements ValueSource<UUID, OfflinePlayer> {
 
     private final String key;
     private final String prefix;
-    private final boolean viewSelf;
     private final boolean viewOffline;
-    private final Predicate<OfflinePlayer> filter;
+    private final Predicate<OfflinePlayer> activatedFilter;
+    private final BiPredicate<OfflinePlayer, K> playerFilter;
 
     /**
-     * Creates the stream with {@link #DEFAULT_KEY}.
+     * Creates the source with {@link #DEFAULT_KEY}, without a filter.
      *
-     * @param viewSelf    whether the player viewing the list may see themselves
      * @param viewOffline whether offline players are included
      */
-    public BukkitPlayerSource(boolean viewSelf, boolean viewOffline) {
-        this(DEFAULT_KEY, viewSelf, viewOffline, null);
+    public BukkitPlayerSource(boolean viewOffline) {
+        this(DEFAULT_KEY, viewOffline, null, null);
     }
 
     /**
-     * Creates the stream with {@link #DEFAULT_KEY} and a filter.
+     * Creates the source with {@link #DEFAULT_KEY}.
      *
-     * @param viewSelf    whether the player viewing the list may see themselves
-     * @param viewOffline whether offline players are included
-     * @param filter      filter a player has to pass to be exposed, or null to expose every player
+     * @param viewOffline  whether offline players are included
+     * @param playerFilter filter a player has to pass to be exposed for a key, or null to expose every player
      */
-    public BukkitPlayerSource(boolean viewSelf, boolean viewOffline, Predicate<OfflinePlayer> filter) {
-        this(DEFAULT_KEY, viewSelf, viewOffline, filter);
+    public BukkitPlayerSource(boolean viewOffline, BiPredicate<OfflinePlayer, K> playerFilter) {
+        this(DEFAULT_KEY, viewOffline, null, playerFilter);
     }
 
     /**
-     * Creates the stream.
+     * Creates the source with {@link #DEFAULT_KEY}.
      *
-     * @param key         name of the variable holding the player itself, without the trailing underscore
-     * @param viewSelf    whether the player viewing the list may see themselves
-     * @param viewOffline whether offline players are included
-     * @param filter      filter a player has to pass to be exposed, or null to expose every player
+     * @param viewOffline     whether offline players are included
+     * @param activatedFilter filter a player has to pass to be active, or null to activate every player
+     * @param playerFilter    filter a player has to pass to be exposed for a key, or null to expose every player
      */
-    public BukkitPlayerSource(String key, boolean viewSelf, boolean viewOffline, Predicate<OfflinePlayer> filter) {
+    public BukkitPlayerSource(boolean viewOffline, Predicate<OfflinePlayer> activatedFilter, BiPredicate<OfflinePlayer, K> playerFilter) {
+        this(DEFAULT_KEY, viewOffline, activatedFilter, playerFilter);
+    }
+
+    /**
+     * Creates the source.
+     *
+     * @param key             name of the variable holding the player itself, without the trailing underscore
+     * @param viewOffline     whether offline players are included
+     * @param activatedFilter filter a player has to pass to be active, or null to activate every player
+     * @param playerFilter    filter a player has to pass to be exposed for a key, or null to expose every player
+     */
+    public BukkitPlayerSource(String key, boolean viewOffline, Predicate<OfflinePlayer> activatedFilter, BiPredicate<OfflinePlayer, K> playerFilter) {
         this.key = key;
         this.prefix = key + "_";
-        this.viewSelf = viewSelf;
         this.viewOffline = viewOffline;
-        this.filter = filter;
+        this.activatedFilter = activatedFilter;
+        this.playerFilter = playerFilter;
     }
 
     @Override
@@ -90,7 +105,7 @@ public class BukkitPlayerSource implements ValueSource<UUID, OfflinePlayer> {
 
     @Override
     public boolean isSourceValueActivated(OfflinePlayer value) {
-        return filter == null || filter.test(value);
+        return activatedFilter == null || activatedFilter.test(value);
     }
 
     @Override
@@ -101,8 +116,18 @@ public class BukkitPlayerSource implements ValueSource<UUID, OfflinePlayer> {
     }
 
     @Override
-    public Stream<OfflinePlayer> getSourceValueStream(UUID key) {
-        Stream<OfflinePlayer> stream = getSourceValueStream();
-        return viewSelf ? stream : stream.filter(player -> !Objects.equals(player.getUniqueId(), key));
+    public Stream<OfflinePlayer> getSourceValueStream(K key) {
+        return filter(getSourceValueStream(), key);
+    }
+
+    /**
+     * Applies the filter of the source to the players of the key.
+     *
+     * @param players the players to filter
+     * @param key     the key they are exposed for
+     * @return stream of the players the key may see
+     */
+    protected Stream<OfflinePlayer> filter(Stream<OfflinePlayer> players, K key) {
+        return playerFilter == null ? players : players.filter(player -> playerFilter.test(player, key));
     }
 }
